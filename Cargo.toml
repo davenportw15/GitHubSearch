@@ -1,0 +1,11 @@
+[package]
+name = "github_json"
+version = "0.1.0"
+authors = ["William"]
+
+[dependencies]
+hyper = "0.10.5"
+hyper-native-tls = "0.2.2"
+serde = "0.9.11"
+serde_json = "0.9.9"
+serde_derive = "0.9.11"
