@@ -9,6 +9,7 @@ extern crate hyper_native_tls;
 use std::env;
 use std::thread;
 use std::sync::Arc;
+use std::thread::JoinHandle;
 
 use hyper::client::Client;
 use hyper::header::UserAgent;
@@ -52,10 +53,12 @@ fn main() {
     let connector = HttpsConnector::new(ssl);
     let client = Arc::new(Client::with_connector(connector));
 
-    let thread_handles = usernames.map(|username| {
-        let client_local = client.clone();
-        thread::spawn(|| { load_user(client_local, username) })
-    });
+    let thread_handles: Vec<JoinHandle<Option<GitHubUser>>> = usernames
+        .map(|username| {
+            let client_local = client.clone();
+            thread::spawn(|| { load_user(client_local, username) })
+        })
+        .collect();
 
     for handle in thread_handles {
         let user = handle.join().unwrap();
