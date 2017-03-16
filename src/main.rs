@@ -9,7 +9,6 @@ extern crate hyper_native_tls;
 use std::env;
 use std::thread;
 use std::sync::Arc;
-use std::thread::JoinHandle;
 
 use hyper::client::Client;
 use hyper::header::UserAgent;
@@ -46,19 +45,17 @@ fn main() {
         return;
     }
 
-    let usernames =  arguments[1..].iter().map(|username| username.to_owned());
+    let usernames = arguments[1..].iter().map(String::to_owned); 
 
     // HTTP client with ssl support
     let ssl = NativeTlsClient::new().unwrap();
     let connector = HttpsConnector::new(ssl);
     let client = Arc::new(Client::with_connector(connector));
 
-    let thread_handles: Vec<JoinHandle<Option<GitHubUser>>> = usernames
-        .map(|username| {
-            let client_local = client.clone();
-            thread::spawn(move || { load_user(client_local, username) })
-        })
-        .collect();
+    let thread_handles = usernames.map(|username| {
+        let client_local = client.clone();
+        thread::spawn(|| { load_user(client_local, username) })
+    });
 
     for handle in thread_handles {
         let user = handle.join().unwrap();
